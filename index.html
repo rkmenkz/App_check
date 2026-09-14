@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#050505">
     
-    <title>СИСТЕМА УЧЕТА // App_checkV1.8</title>
+    <title>СИСТЕМА УЧЕТА // App_checkV1.9</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
         
@@ -25,7 +25,7 @@
         
         .delta-box { text-align: center; margin-bottom: 20px; }
         .delta-label { font-size: 12px; color: #aaa; margin-bottom: 8px; }
-        .delta-value { font-size: 26px; font-weight: bold; color: #00FF41; text-shadow: 0 0 8px #00FF41; }
+        .delta-value { font-size: 22px; font-weight: bold; color: #00FF41; text-shadow: 0 0 8px #00FF41; word-break: break-all; }
         
         .input-label { font-size: 13px; color: #00FF41; margin-bottom: 8px; display: block; }
         
@@ -71,7 +71,7 @@
             <div class="divider"></div>
             
             <div class="delta-box">
-                <div class="delta-label">Текущая Дельта (Облако)</div>
+                <div class="delta-label">Статус / Дельта</div>
                 <div class="delta-value" id="statusDisplay">Синхронизация...</div>
             </div>
             
@@ -143,7 +143,6 @@
         let compressedBase64 = null;
         let isProcessing = false;
 
-        // Восстановление данных из кэша при загрузке страницы
         window.onload = function() {
             const savedDelta = localStorage.getItem('appCheck_delta');
             const savedHistory = localStorage.getItem('appCheck_history');
@@ -229,7 +228,6 @@
                 document.getElementById('category').value = '';
                 document.getElementById('statusDisplay').innerText = `Записано: ${data.delta} ₽`;
                 
-                // Сохраняем в память телефона
                 localStorage.setItem('appCheck_delta', data.delta);
                 localStorage.setItem('appCheck_history', JSON.stringify(data.history));
                 
@@ -253,7 +251,6 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
                     
-                    // Жесткое сжатие для ускорения
                     const MAX = 600; 
                     let w = img.width, h = img.height;
 
@@ -290,7 +287,6 @@
                 if (result.status === 'success') {
                     document.getElementById('statusDisplay').innerText = "Чек распознан!";
                     
-                    // Автозаполнение
                     document.getElementById('amount').value = result.total;
                     formatAmount(document.getElementById('amount'));
                     document.getElementById('comment').value = `[ЧЕК ИИ] Позиций: ${result.itemsCount}`;
@@ -302,10 +298,11 @@
                         </div>
                     ` + document.getElementById('historyContent').innerHTML;
                 } else {
-                    document.getElementById('statusDisplay').innerText = "Ошибка ИИ";
+                    // ВЫВОДИМ ТОЧНЫЙ ТЕКСТ ОШИБКИ С СЕРВЕРА СЮДА:
+                    document.getElementById('statusDisplay').innerText = result.message || "Ошибка ИИ";
                 }
             } catch (error) {
-                document.getElementById('statusDisplay').innerText = "Ошибка сервера";
+                document.getElementById('statusDisplay').innerText = "Сетевая ошибка ИИ";
             } finally {
                 toggleLock(false);
                 compressedBase64 = null;
