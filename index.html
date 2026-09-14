@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#050505">
     
-    <title>СИСТЕМА УЧЕТА // App_checkV1.6</title>
+    <title>СИСТЕМА УЧЕТА // App_checkV1.7</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
         
@@ -38,7 +38,7 @@
         
         /* Поля ввода */
         .input-group { margin-bottom: 20px; }
-        input[type="number"], input[type="text"] { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 14px; color: #00FF41; border-radius: 6px; font-family: inherit; font-size: 16px; transition: border 0.2s; }
+        input[type="text"], input[type="number"] { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 14px; color: #00FF41; border-radius: 6px; font-family: inherit; font-size: 16px; transition: border 0.2s; }
         input:focus { outline: none; border-color: #00FF41; }
         
         /* Кнопки операций */
@@ -88,9 +88,10 @@
                 <div class="toggle-btn" id="userVika" onclick="setToggle('user', 'Вика')">👱‍♀️ Вика</div>
             </div>
             
+            <!-- Исправленное поле Суммы -->
             <div class="input-group">
                 <div class="input-label">Сумма (₽)</div>
-                <input type="number" id="amount" placeholder="0" inputmode="decimal">
+                <input type="text" id="amount" placeholder="0" inputmode="numeric" oninput="formatAmount(this)">
             </div>
             
             <div class="input-group">
@@ -122,11 +123,12 @@
             </div>
             <button class="btn btn-savings" onclick="submitData('savings')">💰 В КОПИЛКУ</button>
             
+            <!-- Исправленный ИИ-Сканер -->
             <div class="ai-scanner-box">
                 <div class="ai-title">[ ИИ-СКАНЕР ЧЕКОВ ]</div>
                 <label class="btn-ai-upload" id="uploadLabel">
                     📷 ВЫБРАТЬ ФОТО/СКРИНШОТ
-                    <input type="file" id="fileInput" accept="image/*" onchange="previewFile()">
+                    <input type="file" id="fileInput" accept="image/jpeg, image/png, image/jpg, image/*" onchange="previewFile()">
                 </label>
                 <button class="btn-ai-process" id="btnAiProcess" onclick="processReceipt()">🧠 РАСПОЗНАТЬ (ИИ)</button>
             </div>
@@ -150,6 +152,14 @@
         let currentPay = 'card';
         let compressedBase64 = null;
         let isProcessing = false;
+
+        // Функция форматирования пробелов в сумме
+        function formatAmount(input) {
+            let value = input.value.replace(/\D/g, ''); // Оставляем только цифры
+            if (value) {
+                input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); // Добавляем пробелы
+            }
+        }
 
         function setToggle(type, value) {
             if (type === 'user') {
@@ -176,7 +186,11 @@
 
         function submitData(type) {
             if(isProcessing) return;
-            const amount = document.getElementById('amount').value;
+            
+            // Забираем сумму и очищаем её от пробелов перед отправкой
+            const amountDisplay = document.getElementById('amount').value;
+            const amount = amountDisplay.replace(/\s/g, '');
+            
             if (!amount || amount <= 0) { alert('Укажите сумму!'); return; }
             
             toggleLock(true);
@@ -273,7 +287,7 @@
             } finally {
                 toggleLock(false);
                 compressedBase64 = null;
-                document.getElementById('uploadLabel').innerHTML = `📷 ВЫБРАТЬ ФОТО/СКРИНШОТ <input type="file" id="fileInput" accept="image/*" onchange="previewFile()">`;
+                document.getElementById('uploadLabel').innerHTML = `📷 ВЫБРАТЬ ФОТО/СКРИНШОТ <input type="file" id="fileInput" accept="image/jpeg, image/png, image/jpg, image/*" onchange="previewFile()">`;
                 document.getElementById('btnAiProcess').style.display = 'none';
             }
         }
