@@ -8,13 +8,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#050505">
     
-    <title>СИСТЕМА УЧЕТА // App_checkV1.7</title>
+    <title>СИСТЕМА УЧЕТА // App_checkV1.8</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
         
         body { margin: 0; background-color: #000; color: #00FF41; font-family: 'Courier Prime', Courier, monospace; overflow-x: hidden; }
-        
-        /* Анимация фона */
         canvas { display: block; position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.25; }
         
         .container { max-width: 420px; margin: 20px auto; padding: 20px; box-sizing: border-box; }
@@ -31,17 +29,14 @@
         
         .input-label { font-size: 13px; color: #00FF41; margin-bottom: 8px; display: block; }
         
-        /* Переключатели */
         .toggle-row { display: flex; gap: 10px; margin-bottom: 20px; }
         .toggle-btn { flex: 1; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid #333; border-radius: 6px; color: #aaa; cursor: pointer; font-family: inherit; font-size: 14px; text-align: center; transition: all 0.2s; }
         .toggle-btn.active { border-color: #00FF41; color: #00FF41; background: rgba(0, 255, 65, 0.05); box-shadow: inset 0 0 10px rgba(0,255,65,0.1); }
         
-        /* Поля ввода */
         .input-group { margin-bottom: 20px; }
         input[type="text"], input[type="number"] { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 14px; color: #00FF41; border-radius: 6px; font-family: inherit; font-size: 16px; transition: border 0.2s; }
         input:focus { outline: none; border-color: #00FF41; }
         
-        /* Кнопки операций */
         .action-row { display: flex; gap: 10px; margin-bottom: 15px; }
         .btn { border: none; border-radius: 6px; font-weight: bold; font-family: inherit; font-size: 15px; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; }
         .btn:active { transform: scale(0.98); }
@@ -51,14 +46,12 @@
         .btn-income { flex: 1; background: #00a800; color: #fff; padding: 16px; box-shadow: 0 0 10px rgba(0,168,0,0.3); }
         .btn-savings { width: 100%; background: #0088cc; color: #fff; padding: 16px; margin-bottom: 25px; box-shadow: 0 0 10px rgba(0,136,204,0.3); }
 
-        /* ИИ-Сканер */
         .ai-scanner-box { border: 1px dashed #00aaff; border-radius: 8px; padding: 15px; margin-bottom: 25px; background: rgba(0, 170, 255, 0.05); }
         .ai-title { text-align: center; color: #00aaff; font-size: 13px; margin-bottom: 15px; font-weight: bold; }
         .btn-ai-upload { width: 100%; display: block; text-align: center; background: transparent; border: 1px solid #00aaff; color: #00aaff; padding: 14px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; box-sizing: border-box; }
         .btn-ai-process { width: 100%; display: none; background: #00aaff; color: #000; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: bold; margin-top: 10px; }
         input[type="file"] { display: none; }
         
-        /* История */
         .history-header { display: flex; justify-content: space-between; font-size: 12px; color: #00FF41; margin-bottom: 15px; }
         .history-link { color: #00FF41; text-decoration: none; cursor: pointer; }
         .history-title { text-align: center; font-size: 10px; color: #aaa; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
@@ -79,7 +72,7 @@
             
             <div class="delta-box">
                 <div class="delta-label">Текущая Дельта (Облако)</div>
-                <div class="delta-value" id="statusDisplay">Готов к работе</div>
+                <div class="delta-value" id="statusDisplay">Синхронизация...</div>
             </div>
             
             <div class="input-label">Кто вносит?</div>
@@ -88,7 +81,6 @@
                 <div class="toggle-btn" id="userVika" onclick="setToggle('user', 'Вика')">👱‍♀️ Вика</div>
             </div>
             
-            <!-- Исправленное поле Суммы -->
             <div class="input-group">
                 <div class="input-label">Сумма (₽)</div>
                 <input type="text" id="amount" placeholder="0" inputmode="numeric" oninput="formatAmount(this)">
@@ -123,7 +115,6 @@
             </div>
             <button class="btn btn-savings" onclick="submitData('savings')">💰 В КОПИЛКУ</button>
             
-            <!-- Исправленный ИИ-Сканер -->
             <div class="ai-scanner-box">
                 <div class="ai-title">[ ИИ-СКАНЕР ЧЕКОВ ]</div>
                 <label class="btn-ai-upload" id="uploadLabel">
@@ -140,12 +131,11 @@
                 <span class="history-link" onclick="document.getElementById('statusDisplay').innerText='Обновление...'">🔄 Обновить</span>
             </div>
             <div id="historyContent"></div>
-            <div class="history-title">ПОСЛЕДНИЕ ОПЕРАЦИИ МЕСЯЦА<br>Синхронизация с облаком...</div>
+            <div class="history-title">ПОСЛЕДНИЕ ОПЕРАЦИИ МЕСЯЦА</div>
         </div>
     </div>
 
     <script>
-        // Ссылка на Google Apps Script бэкенд
         const TEST_API_URL = "https://script.google.com/macros/s/AKfycbwNoxTBx6cl7FeYGt5NlNsgqDVcf_YlSJgr43yivh6ELbIGmqJD_yIADwtHQUgjV96FCQ/exec";
         
         let currentUser = 'Никита';
@@ -153,11 +143,38 @@
         let compressedBase64 = null;
         let isProcessing = false;
 
-        // Функция форматирования пробелов в сумме
+        // Восстановление данных из кэша при загрузке страницы
+        window.onload = function() {
+            const savedDelta = localStorage.getItem('appCheck_delta');
+            const savedHistory = localStorage.getItem('appCheck_history');
+            
+            if (savedDelta) {
+                document.getElementById('statusDisplay').innerText = `Записано: ${savedDelta} ₽`;
+            } else {
+                document.getElementById('statusDisplay').innerText = "Готов к работе";
+            }
+            
+            if (savedHistory) {
+                try {
+                    renderHistory(JSON.parse(savedHistory));
+                } catch(e) {}
+            }
+        };
+
+        function renderHistory(historyArray) {
+            let histHtml = '';
+            historyArray.forEach(item => {
+                const sign = item.type === 'income' ? '+' : '-';
+                const color = item.type === 'income' ? '#00FF41' : '#c10000';
+                histHtml += `<div style="margin-bottom:8px;"><span style="color:${color}">${sign}${item.amount} ₽</span> | ${item.category} | ${item.user}</div>`;
+            });
+            document.getElementById('historyContent').innerHTML = histHtml;
+        }
+
         function formatAmount(input) {
-            let value = input.value.replace(/\D/g, ''); // Оставляем только цифры
+            let value = input.value.replace(/\D/g, ''); 
             if (value) {
-                input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); // Добавляем пробелы
+                input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' '); 
             }
         }
 
@@ -187,7 +204,6 @@
         function submitData(type) {
             if(isProcessing) return;
             
-            // Забираем сумму и очищаем её от пробелов перед отправкой
             const amountDisplay = document.getElementById('amount').value;
             const amount = amountDisplay.replace(/\s/g, '');
             
@@ -210,15 +226,14 @@
             if(data.status === 'success') {
                 document.getElementById('amount').value = '';
                 document.getElementById('comment').value = '';
+                document.getElementById('category').value = '';
                 document.getElementById('statusDisplay').innerText = `Записано: ${data.delta} ₽`;
                 
-                let histHtml = '';
-                data.history.forEach(item => {
-                    const sign = item.type === 'income' ? '+' : '-';
-                    const color = item.type === 'income' ? '#00FF41' : '#c10000';
-                    histHtml += `<div style="margin-bottom:8px;"><span style="color:${color}">${sign}${item.amount} ₽</span> | ${item.category} | ${item.user}</div>`;
-                });
-                document.getElementById('historyContent').innerHTML = histHtml;
+                // Сохраняем в память телефона
+                localStorage.setItem('appCheck_delta', data.delta);
+                localStorage.setItem('appCheck_history', JSON.stringify(data.history));
+                
+                renderHistory(data.history);
             } else {
                 document.getElementById('statusDisplay').innerText = 'Ошибка сети';
             }
@@ -237,7 +252,10 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    const MAX = 1000; let w = img.width, h = img.height;
+                    
+                    // Жесткое сжатие для ускорения
+                    const MAX = 600; 
+                    let w = img.width, h = img.height;
 
                     if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } 
                     else { if (h > MAX) { w *= MAX / h; h = MAX; } }
@@ -245,7 +263,7 @@
                     canvas.width = w; canvas.height = h;
                     ctx.drawImage(img, 0, 0, w, h);
                     
-                    compressedBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+                    compressedBase64 = canvas.toDataURL('image/jpeg', 0.4).split(',')[1];
                     document.getElementById('statusDisplay').innerText = "Фото готово к ИИ";
                     document.getElementById('btnAiProcess').style.display = 'block';
                 };
@@ -271,14 +289,18 @@
 
                 if (result.status === 'success') {
                     document.getElementById('statusDisplay').innerText = "Чек распознан!";
+                    
+                    // Автозаполнение
+                    document.getElementById('amount').value = result.total;
+                    formatAmount(document.getElementById('amount'));
+                    document.getElementById('comment').value = `[ЧЕК ИИ] Позиций: ${result.itemsCount}`;
+                    
                     document.getElementById('historyContent').innerHTML = `
-                        <div style="color:#00aaff; padding:10px; border:1px dashed #00aaff; border-radius:5px;">
-                            <strong>✅ ИТОГИ ЧЕКА:</strong><br>
-                            Позиций: ${result.itemsCount} шт.<br>
-                            Сумма: ${result.total} ₽<br>
-                            <em>Сохранено в "Детализация"</em>
+                        <div style="color:#00aaff; padding:10px; border:1px dashed #00aaff; border-radius:5px; margin-bottom:15px; font-size:13px;">
+                            <strong>✅ ДАННЫЕ ИЗВЛЕЧЕНЫ</strong><br>
+                            Сумма и комментарий заполнены. Нажми "- РАСХОД" для записи в таблицу.
                         </div>
-                    `;
+                    ` + document.getElementById('historyContent').innerHTML;
                 } else {
                     document.getElementById('statusDisplay').innerText = "Ошибка ИИ";
                 }
