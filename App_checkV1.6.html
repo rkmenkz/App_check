@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#050505">
+    
+    <title>СИСТЕМА УЧЕТА // App_checkV1.6</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        body { margin: 0; background-color: #000; color: #00FF41; font-family: 'Courier Prime', Courier, monospace; overflow-x: hidden; }
+        
+        /* Анимация фона */
+        canvas { display: block; position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.25; }
+        
+        .container { max-width: 420px; margin: 20px auto; padding: 20px; box-sizing: border-box; }
+        .app-box { border: 1px solid #00FF41; border-radius: 12px; padding: 20px; background-color: rgba(5, 5, 5, 0.9); box-shadow: 0 0 15px rgba(0, 255, 65, 0.1); }
+        
+        .header h1 { text-align: center; color: #00FF41; font-size: 17px; margin: 0 0 5px 0; text-shadow: 0 0 5px #00FF41; text-transform: uppercase; }
+        .header h3 { text-align: center; color: #008f11; font-size: 10px; margin: 0 0 15px 0; letter-spacing: 2px; text-transform: uppercase; }
+        
+        .divider { border-bottom: 1px dashed #008f11; margin: 15px 0; }
+        
+        .delta-box { text-align: center; margin-bottom: 20px; }
+        .delta-label { font-size: 12px; color: #aaa; margin-bottom: 8px; }
+        .delta-value { font-size: 26px; font-weight: bold; color: #00FF41; text-shadow: 0 0 8px #00FF41; }
+        
+        .input-label { font-size: 13px; color: #00FF41; margin-bottom: 8px; display: block; }
+        
+        /* Переключатели */
+        .toggle-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .toggle-btn { flex: 1; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid #333; border-radius: 6px; color: #aaa; cursor: pointer; font-family: inherit; font-size: 14px; text-align: center; transition: all 0.2s; }
+        .toggle-btn.active { border-color: #00FF41; color: #00FF41; background: rgba(0, 255, 65, 0.05); box-shadow: inset 0 0 10px rgba(0,255,65,0.1); }
+        
+        /* Поля ввода */
+        .input-group { margin-bottom: 20px; }
+        input[type="number"], input[type="text"] { width: 100%; box-sizing: border-box; background: rgba(0,0,0,0.5); border: 1px solid #333; padding: 14px; color: #00FF41; border-radius: 6px; font-family: inherit; font-size: 16px; transition: border 0.2s; }
+        input:focus { outline: none; border-color: #00FF41; }
+        
+        /* Кнопки операций */
+        .action-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .btn { border: none; border-radius: 6px; font-weight: bold; font-family: inherit; font-size: 15px; cursor: pointer; text-transform: uppercase; display: flex; align-items: center; justify-content: center; }
+        .btn:active { transform: scale(0.98); }
+        .btn.disabled { opacity: 0.5; pointer-events: none; }
+        
+        .btn-expense { flex: 1; background: #c10000; color: #fff; padding: 16px; box-shadow: 0 0 10px rgba(193,0,0,0.3); }
+        .btn-income { flex: 1; background: #00a800; color: #fff; padding: 16px; box-shadow: 0 0 10px rgba(0,168,0,0.3); }
+        .btn-savings { width: 100%; background: #0088cc; color: #fff; padding: 16px; margin-bottom: 25px; box-shadow: 0 0 10px rgba(0,136,204,0.3); }
+
+        /* ИИ-Сканер */
+        .ai-scanner-box { border: 1px dashed #00aaff; border-radius: 8px; padding: 15px; margin-bottom: 25px; background: rgba(0, 170, 255, 0.05); }
+        .ai-title { text-align: center; color: #00aaff; font-size: 13px; margin-bottom: 15px; font-weight: bold; }
+        .btn-ai-upload { width: 100%; display: block; text-align: center; background: transparent; border: 1px solid #00aaff; color: #00aaff; padding: 14px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; box-sizing: border-box; }
+        .btn-ai-process { width: 100%; display: none; background: #00aaff; color: #000; border: none; padding: 14px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: bold; margin-top: 10px; }
+        input[type="file"] { display: none; }
+        
+        /* История */
+        .history-header { display: flex; justify-content: space-between; font-size: 12px; color: #00FF41; margin-bottom: 15px; }
+        .history-link { color: #00FF41; text-decoration: none; cursor: pointer; }
+        .history-title { text-align: center; font-size: 10px; color: #aaa; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        #historyContent { font-size: 12px; line-height: 1.5; color: #ccc; }
+    </style>
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+    
+    <div class="container">
+        <div class="app-box">
+            <div class="header">
+                <h1>СИСТЕМА УЧЕТА: КАЛАШНИКОВЫ</h1>
+                <h3>MENS SANA IN FORTITUDINE</h3>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="delta-box">
+                <div class="delta-label">Текущая Дельта (Облако)</div>
+                <div class="delta-value" id="statusDisplay">Готов к работе</div>
+            </div>
+            
+            <div class="input-label">Кто вносит?</div>
+            <div class="toggle-row">
+                <div class="toggle-btn active" id="userNikita" onclick="setToggle('user', 'Никита')">🧔 Никита</div>
+                <div class="toggle-btn" id="userVika" onclick="setToggle('user', 'Вика')">👱‍♀️ Вика</div>
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">Сумма (₽)</div>
+                <input type="number" id="amount" placeholder="0" inputmode="decimal">
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">Категория / Своя подпись</div>
+                <input type="text" id="category" list="catList" placeholder="Выберите из списка или напишите">
+                <datalist id="catList">
+                    <option value="Продукты">
+                    <option value="Кафе">
+                    <option value="Машина">
+                    <option value="Кот">
+                    <option value="Развлечения">
+                </datalist>
+            </div>
+            
+            <div class="input-group">
+                <div class="input-label">Комментарий / Примечание</div>
+                <input type="text" id="comment" placeholder="Например: за обучение наличными">
+            </div>
+            
+            <div class="input-label">Способ оплаты</div>
+            <div class="toggle-row">
+                <div class="toggle-btn active" id="payCard" onclick="setToggle('pay', 'card')">💳 Карта</div>
+                <div class="toggle-btn" id="payCash" onclick="setToggle('pay', 'cash')">💵 Наличные</div>
+            </div>
+            
+            <div class="action-row">
+                <button class="btn btn-expense" onclick="submitData('expense')">- РАСХОД</button>
+                <button class="btn btn-income" onclick="submitData('income')">+ ДОХОД</button>
+            </div>
+            <button class="btn btn-savings" onclick="submitData('savings')">💰 В КОПИЛКУ</button>
+            
+            <div class="ai-scanner-box">
+                <div class="ai-title">[ ИИ-СКАНЕР ЧЕКОВ ]</div>
+                <label class="btn-ai-upload" id="uploadLabel">
+                    📷 ВЫБРАТЬ ФОТО/СКРИНШОТ
+                    <input type="file" id="fileInput" accept="image/*" onchange="previewFile()">
+                </label>
+                <button class="btn-ai-process" id="btnAiProcess" onclick="processReceipt()">🧠 РАСПОЗНАТЬ (ИИ)</button>
+            </div>
+
+            <div class="divider"></div>
+            
+            <div class="history-header">
+                <span>Операции</span>
+                <span class="history-link" onclick="document.getElementById('statusDisplay').innerText='Обновление...'">🔄 Обновить</span>
+            </div>
+            <div id="historyContent"></div>
+            <div class="history-title">ПОСЛЕДНИЕ ОПЕРАЦИИ МЕСЯЦА<br>Синхронизация с облаком...</div>
+        </div>
+    </div>
+
+    <script>
+        // Ссылка на Google Apps Script бэкенд
+        const TEST_API_URL = "https://script.google.com/macros/s/AKfycbwNoxTBx6cl7FeYGt5NlNsgqDVcf_YlSJgr43yivh6ELbIGmqJD_yIADwtHQUgjV96FCQ/exec";
+        
+        let currentUser = 'Никита';
+        let currentPay = 'card';
+        let compressedBase64 = null;
+        let isProcessing = false;
+
+        function setToggle(type, value) {
+            if (type === 'user') {
+                currentUser = value;
+                document.getElementById('userNikita').classList.remove('active');
+                document.getElementById('userVika').classList.remove('active');
+                if(value === 'Никита') document.getElementById('userNikita').classList.add('active');
+                if(value === 'Вика') document.getElementById('userVika').classList.add('active');
+            } else if (type === 'pay') {
+                currentPay = value;
+                document.getElementById('payCard').classList.remove('active');
+                document.getElementById('payCash').classList.remove('active');
+                if(value === 'card') document.getElementById('payCard').classList.add('active');
+                if(value === 'cash') document.getElementById('payCash').classList.add('active');
+            }
+        }
+
+        function toggleLock(lock) {
+            isProcessing = lock;
+            document.querySelectorAll('button').forEach(b => lock ? b.classList.add('disabled') : b.classList.remove('disabled'));
+            document.getElementById('uploadLabel').style.opacity = lock ? "0.5" : "1";
+            document.getElementById('uploadLabel').style.pointerEvents = lock ? "none" : "auto";
+        }
+
+        function submitData(type) {
+            if(isProcessing) return;
+            const amount = document.getElementById('amount').value;
+            if (!amount || amount <= 0) { alert('Укажите сумму!'); return; }
+            
+            toggleLock(true);
+            document.getElementById('statusDisplay').innerText = 'Отправка...';
+
+            const category = document.getElementById('category').value || 'Не указано';
+            const comment = document.getElementById('comment').value;
+            const dateStr = new Date().toLocaleString('ru-RU', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+
+            const script = document.createElement('script');
+            script.src = `${TEST_API_URL}?action=add&type=${type}&amount=${amount}&category=${category}&comment=${comment}&paymentMethod=${currentPay}&user=${currentUser}&date=${dateStr}&callback=handleResponse`;
+            document.body.appendChild(script);
+        }
+
+        window.handleResponse = function(data) {
+            toggleLock(false);
+            if(data.status === 'success') {
+                document.getElementById('amount').value = '';
+                document.getElementById('comment').value = '';
+                document.getElementById('statusDisplay').innerText = `Записано: ${data.delta} ₽`;
+                
+                let histHtml = '';
+                data.history.forEach(item => {
+                    const sign = item.type === 'income' ? '+' : '-';
+                    const color = item.type === 'income' ? '#00FF41' : '#c10000';
+                    histHtml += `<div style="margin-bottom:8px;"><span style="color:${color}">${sign}${item.amount} ₽</span> | ${item.category} | ${item.user}</div>`;
+                });
+                document.getElementById('historyContent').innerHTML = histHtml;
+            } else {
+                document.getElementById('statusDisplay').innerText = 'Ошибка сети';
+            }
+        }
+
+        function previewFile() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return;
+
+            document.getElementById('statusDisplay').innerText = "Сжатие фото...";
+            document.getElementById('uploadLabel').innerHTML = `✔️ ${file.name.substring(0,15)}...`;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX = 1000; let w = img.width, h = img.height;
+
+                    if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } 
+                    else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+
+                    canvas.width = w; canvas.height = h;
+                    ctx.drawImage(img, 0, 0, w, h);
+                    
+                    compressedBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+                    document.getElementById('statusDisplay').innerText = "Фото готово к ИИ";
+                    document.getElementById('btnAiProcess').style.display = 'block';
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function processReceipt() {
+            if (!compressedBase64 || isProcessing) return;
+
+            toggleLock(true);
+            document.getElementById('statusDisplay').innerText = "ИИ читает чек...";
+
+            try {
+                const response = await fetch(TEST_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ image: compressedBase64 })
+                });
+                
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    document.getElementById('statusDisplay').innerText = "Чек распознан!";
+                    document.getElementById('historyContent').innerHTML = `
+                        <div style="color:#00aaff; padding:10px; border:1px dashed #00aaff; border-radius:5px;">
+                            <strong>✅ ИТОГИ ЧЕКА:</strong><br>
+                            Позиций: ${result.itemsCount} шт.<br>
+                            Сумма: ${result.total} ₽<br>
+                            <em>Сохранено в "Детализация"</em>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('statusDisplay').innerText = "Ошибка ИИ";
+                }
+            } catch (error) {
+                document.getElementById('statusDisplay').innerText = "Ошибка сервера";
+            } finally {
+                toggleLock(false);
+                compressedBase64 = null;
+                document.getElementById('uploadLabel').innerHTML = `📷 ВЫБРАТЬ ФОТО/СКРИНШОТ <input type="file" id="fileInput" accept="image/*" onchange="previewFile()">`;
+                document.getElementById('btnAiProcess').style.display = 'none';
+            }
+        }
+
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const letters = '01'.split('');
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        for (let x = 0; x < columns; x++) drops[x] = 1;
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+    </script>
+</body>
+</html>
